@@ -1,0 +1,40 @@
+import { Notification } from "../model/notification.model.js";
+
+export const getNotifications = async (req, res) => {
+    try {
+        const userId = req.id;
+        const notifications = await Notification.find({ receiver: userId })
+            .populate('sender', 'username profilePicture')
+            .populate('post', 'image')
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            notifications
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
+    }
+};
+
+export const markAsRead = async (req, res) => {
+    try {
+        const userId = req.id;
+        await Notification.updateMany({ receiver: userId, isRead: false }, { $set: { isRead: true } });
+
+        return res.status(200).json({
+            success: true,
+            message: "Notifications marked as read"
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
+    }
+};
